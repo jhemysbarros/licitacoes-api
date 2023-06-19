@@ -1,0 +1,12 @@
+version: '3'
+services:
+  mysql:
+    container_name: licitacoes
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=licitacoes2023
+      - MYSQL_USER=jhemys
+      - MYSQL_DATABASE=licitacoes
+    ports:
+      - '3306:3306'

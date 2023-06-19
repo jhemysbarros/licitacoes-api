@@ -1,0 +1,17 @@
+apply plugin: 'org.hidetake.swagger.generator'
+
+swaggerSources {
+    server {
+        inputFile = file('src/main/resources/swagger/licitacoes-api_v1.yml')
+        code {
+            configFile = file('src/main/resources/swagger/config.json')
+            components = ['models', 'apis']
+            language = 'spring'
+        }
+        ui {
+            options.docExpansion = 'full'
+        }
+    }
+}
+
+tasks.compileJava.dependsOn(generateSwaggerCodeServer)

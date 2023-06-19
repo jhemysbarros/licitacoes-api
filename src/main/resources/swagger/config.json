@@ -1,0 +1,8 @@
+{
+  "dateLibrary": "java8",
+  "hideGenerationTimestamp": true,
+  "interfaceOnly": true,
+  "modelPackage": "io.swagger.model",
+  "apiPackage": "io.swagger.api",
+  "invokerPackage": "io"
+}

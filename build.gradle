@@ -1,0 +1,82 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.12'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id "org.hidetake.swagger.generator" version "$swaggerGeneratorVersion" apply false
+}
+
+apply from: 'plugins/swagger.gradle'
+
+group = 'br.com.licitacoes-api'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '11'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir file("${buildDir}/generated/source/")
+			srcDir file("${buildDir}/swagger-code-server/src/main/java")
+		}
+		resources { srcDir 'src/main/resources' }
+	}
+	test {
+		resources { srcDir 'src/test/resources' }
+	}
+
+	main.java.srcDirs += 'src/main/java'
+	test.java.srcDirs += 'src/test/java'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	springFoxArtifacts = [
+			'springfox-swagger2',
+			'springfox-swagger-ui',
+			'springfox-boot-starter'
+	]
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation "org.mapstruct:mapstruct:$mapstructVersion"
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	swaggerCodegen "io.swagger:swagger-codegen-cli:$swaggerCodeGenVersion"
+	swaggerUI "org.webjars:swagger-ui:$swaggerUIVersion"
+
+	springFoxArtifacts.each {
+		artifact -> implementation "io.springfox:$artifact:$springFoxVersion"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.processResources {
+	duplicatesStrategy = 'include'
+}
+
+tasks.processTestResources {
+	duplicatesStrategy = 'include'
+}
