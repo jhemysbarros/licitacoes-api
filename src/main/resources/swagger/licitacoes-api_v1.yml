@@ -1,0 +1,128 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Licitações API
+basePath: /v1
+tags:
+  - name: licitacao
+schemes:
+  - http
+paths:
+  '/licitacoes':
+    get:
+      tags:
+        - licitacao
+      summary: Obter licitacoes
+      description: Registrar um horário da jornada diária de trabalho.
+      operationId: buscaLicitacoes
+      parameters:
+        - in: query
+          name: page
+          type: integer
+          format: int32
+          description: Número da página
+          required: false
+        - in: query
+          name: size
+          type: integer
+          format: int32
+          description: Quantidade de licitações por página
+          required: false
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: Licitacoes paginadas
+          schema:
+            $ref: '#/definitions/LicitacoesPaginada'
+  '/licitacoes/{id}':
+    patch:
+      tags:
+        - licitacao
+      summary: Atualiza status da licitacao
+      description: Atualiza status da licitacao existentes no banco
+      operationId: atualizaLicitacao
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          format: int64
+          required: true
+          description: Identificador da licitação
+        - in: body
+          name: licitacaoRequest
+          schema:
+            $ref: '#/definitions/LicitacaoRequest'
+          required: true
+          description: Identificador da licitação
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: Resposta da atualização
+          schema:
+            $ref: '#/definitions/LicitacaoResponse'
+
+definitions:
+  LicitacaoResponse:
+    type: object
+    description: Licitacao
+    properties:
+      id:
+        type: integer
+        format: int64
+      orgao:
+        type: string
+      codigoUASG:
+        type: string
+      modalidade:
+        type: string
+      objeto:
+        type: string
+      dataInicioEdital:
+        type: string
+        format: datetime
+      dataEntregaProposta:
+        type: string
+        format: datetime
+      endereco:
+        type: string
+      telefone:
+        type: string
+      fax:
+        type: string
+      status:
+        type: string
+        example: LIDO, NAO_LIDO
+  LicitacaoRequest:
+    type: object
+    description: Licitacao
+    properties:
+      status:
+        type: string
+        example: LIDO, NAO_LIDO
+
+  LicitacoesPaginada:
+    type: object
+    description: Licitacoes paginadas
+    properties:
+      licitacoes:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/LicitacaoResponse'
+      page:
+        type: integer
+        format: int32
+        example: 0
+      size:
+        type: integer
+        format: int32
+        example: 20
+
+  Erro:
+    type: object
+    description: Mensagem de erro
+    properties:
+      mensagem:
+        type: string
