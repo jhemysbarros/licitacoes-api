@@ -81,10 +81,12 @@ definitions:
         type: string
       dataInicioEdital:
         type: string
-        format: datetime
+      dataInicioEditalDetalhada:
+        type: string
       dataEntregaProposta:
         type: string
-        format: datetime
+      dataEntregaPropostaDetalhada:
+        type: string
       endereco:
         type: string
       telefone:
