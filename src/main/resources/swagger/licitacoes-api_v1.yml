@@ -28,6 +28,21 @@ paths:
           format: int32
           description: Quantidade de licitações por página
           required: false
+        - in: query
+          name: status
+          type: string
+          description: Filtro por status
+          required: false
+        - in: query
+          name: dataInicioEdital
+          type: string
+          description: Filtro por data de início do edital
+          required: false
+        - in: query
+          name: dataEntregaProposta
+          type: string
+          description: Filtro por data de entrega da proposta
+          required: false
       produces:
         - application/json
       responses:
@@ -121,6 +136,12 @@ definitions:
         type: integer
         format: int32
         example: 20
+      has_next:
+        type: boolean
+      totalElements:
+        type: integer
+        format: int64
+        example: 500
 
   Erro:
     type: object

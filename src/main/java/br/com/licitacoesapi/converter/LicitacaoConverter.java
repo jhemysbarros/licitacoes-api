@@ -20,6 +20,8 @@ public interface LicitacaoConverter {
 		licitacoesPaginada.setLicitacoes(toResponse(licitacoes.toList()));
 		licitacoesPaginada.setPage(licitacoes.getNumber());
 		licitacoesPaginada.setSize(licitacoes.getSize());
+		licitacoesPaginada.setHasNext(licitacoes.hasNext());
+		licitacoesPaginada.setTotalElements(licitacoes.getTotalElements());
 		return licitacoesPaginada;
 	}
 }
