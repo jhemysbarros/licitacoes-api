@@ -6,7 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LicitacaoService {
@@ -25,6 +28,18 @@ public class LicitacaoService {
 		Licitacao licitacaoEncontrada = buscaLicitacao(licitacao.getId());
 		Optional.ofNullable(licitacao.getStatus()).ifPresent(licitacaoEncontrada::setStatus);
 		return licitacaoRepository.save(licitacaoEncontrada);
+	}
+
+	public List<Licitacao> salvaLicitacoes(List<Licitacao> licitacoes) {
+		if (licitacoes.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<Licitacao> licitacoesExistentes = licitacaoRepository.findAll();
+
+		return licitacoes.stream()
+			.filter(licitacao -> !licitacoesExistentes.contains(licitacao))
+			.map(licitacaoRepository::save)
+			.collect(Collectors.toList());
 	}
 
 	private Licitacao buscaLicitacao(Long id) {
