@@ -17,16 +17,16 @@ paths:
       operationId: buscaLicitacoes
       parameters:
         - in: query
-          name: page
-          type: integer
-          format: int32
-          description: Número da página
-          required: false
-        - in: query
           name: size
           type: integer
           format: int32
           description: Quantidade de licitações por página
+          required: false
+        - in: query
+          name: page
+          type: integer
+          format: int32
+          description: Número da página
           required: false
         - in: query
           name: status
