@@ -2,6 +2,7 @@ package br.com.licitacoesapi.api.impl;
 
 import br.com.licitacoesapi.converter.LicitacaoConverter;
 import br.com.licitacoesapi.model.Licitacao;
+import br.com.licitacoesapi.model.StatusEnum;
 import br.com.licitacoesapi.service.LicitacaoService;
 import io.swagger.api.LicitacoesApi;
 import io.swagger.model.LicitacaoRequest;
@@ -19,6 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -40,13 +45,24 @@ public class LicitacoesApiImpl implements LicitacoesApi {
 	@GetMapping
 	public ResponseEntity<LicitacoesPaginada> buscaLicitacoes(
 		@RequestParam(value = "size", required = false) Integer size,
-		@RequestParam(value = "page", required = false) Integer page
+		@RequestParam(value = "page", required = false) Integer page,
+		@RequestParam(value = "status", required = false) String status,
+		@RequestParam(value = "dataInicioEdital", required = false) String dataInicioEdital,
+		@RequestParam(value = "dataEntregaProposta", required = false) String dataEntregaProposta
 	) {
 		logger.info("Buscando licitações");
 		int pageSize = Optional.ofNullable(size).orElse(DEFAULT_SIZE);
 		int pageNumber = Optional.ofNullable(page).orElse(DEFAULT_PAGE);
-		Page<Licitacao> licitacoes = licitacaoService.buscaLicitacoes(PageRequest.of(pageNumber, pageSize));
-		LicitacoesPaginada licitacoesPaginada = licitacaoConverter.toResponsePaginada(licitacoes);
+		StatusEnum statusFornecido = Objects.nonNull(status) ? StatusEnum.valueOf(status) : null;
+		LocalDate dataInicioFornecida = Objects.nonNull(dataInicioEdital) ? LocalDate.parse(dataInicioEdital) : null;
+		LocalDateTime dataEntregaFornecida = Objects.nonNull(dataEntregaProposta) ? LocalDateTime.parse(dataEntregaProposta) : null;
+		Page<Licitacao> paginaDeLicitacoes = licitacaoService.buscaLicitacoes(
+			statusFornecido,
+			dataInicioFornecida,
+			dataEntregaFornecida,
+			PageRequest.of(pageNumber, pageSize)
+		);
+		LicitacoesPaginada licitacoesPaginada = licitacaoConverter.toResponsePaginada(paginaDeLicitacoes);
 		return ResponseEntity.ok(licitacoesPaginada);
 	}
 

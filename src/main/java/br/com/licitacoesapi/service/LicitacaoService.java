@@ -1,11 +1,14 @@
 package br.com.licitacoesapi.service;
 
 import br.com.licitacoesapi.model.Licitacao;
+import br.com.licitacoesapi.model.StatusEnum;
 import br.com.licitacoesapi.repository.LicitacaoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +23,8 @@ public class LicitacaoService {
 		this.licitacaoRepository = licitacaoRepository;
 	}
 
-	public Page<Licitacao> buscaLicitacoes(PageRequest page) {
-		return licitacaoRepository.findAll(page);
+	public Page<Licitacao> buscaLicitacoes(StatusEnum status, LocalDate dataInicioEdital, LocalDateTime dataEntregaProposta, PageRequest page) {
+		return licitacaoRepository.findAllByStatusAndDataInicioEditalAndDataEntregaPropostaOOrCodigoUASG(status, dataInicioEdital, dataEntregaProposta, page);
 	}
 
 	public Licitacao atualizaLicitacao(Licitacao licitacao) {
