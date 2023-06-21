@@ -1,4 +1,4 @@
-package br.com.licitacoesapi;
+package br.com.licitacoesapi.api.impl;
 
 import br.com.licitacoesapi.api.impl.LicitacoesApiImpl;
 import br.com.licitacoesapi.converter.LicitacaoConverter;
