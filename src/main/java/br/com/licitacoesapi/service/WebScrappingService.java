@@ -28,7 +28,7 @@ public class WebScrappingService {
 	private static final String FAX = "FAX";
 	private static final String ORGAO = "ORGAO";
 	private static final String FIRST_ELEMENT_WEB_IDENTIFIER = "1";
-	private static final String TARGET_WEB_URL = "http://comprasnet.gov.br/ConsultaLicitacoes/ConsLicitacaoDia.asp?pagina=%s";
+	private static final String URL_SISTEMA_WEB = "http://comprasnet.gov.br/ConsultaLicitacoes/ConsLicitacaoDia.asp?pagina=%s";
 
 	private final LicitacaoService licitacaoService;
 	private static final Logger logger = Logger.getLogger(WebScrappingService.class);
@@ -38,7 +38,7 @@ public class WebScrappingService {
 	}
 
 	public List<Licitacao> extraiDadosDaWeb() throws IOException {
-		Elements elementos = retrieveElementsFromWeb();
+		Elements elementos = obtemElementosDaWeb();
 		List<Map<String, String>> dadosExtraidos = mapeiaDadosExtraidos(elementos);
 		List<Licitacao> licitacoesConvertidas = converteDadosExtraidos(dadosExtraidos);
 
@@ -46,87 +46,119 @@ public class WebScrappingService {
 	}
 
 	private List<Licitacao> converteDadosExtraidos(List<Map<String, String>> dadosExtraidos) {
-		return dadosExtraidos.stream().map((keyValues) -> {
+		return dadosExtraidos.stream().map(dadosAgrupadosPorChaveValor -> {
 			Licitacao licitacao = new Licitacao();
-			licitacao.setEndereco(keyValues.get(ENDERECO).trim());
-			licitacao.setFax(keyValues.get(FAX).trim());
-			licitacao.setModalidade(keyValues.get(MODALIDADE).trim());
-			licitacao.setOrgao(keyValues.get(ORGAO).trim());
-			licitacao.setCodigoUASG(keyValues.get(CODIGO_DA_UASG).trim());
-			licitacao.setDataEntregaProposta(keyValues.get(ENTREGA_DA_PROPOSTA).trim());
-			licitacao.setDataInicioEdital(keyValues.get(EDITAL_A_PARTIR_DE).trim());
-			licitacao.setTelefone(keyValues.get(TELEFONE).trim());
-			licitacao.setObjeto(keyValues.get(OBJETO).trim());
+			licitacao.setEndereco(dadosAgrupadosPorChaveValor.get(ENDERECO).trim());
+			licitacao.setFax(dadosAgrupadosPorChaveValor.get(FAX).trim());
+			licitacao.setModalidade(dadosAgrupadosPorChaveValor.get(MODALIDADE).trim());
+			licitacao.setOrgao(dadosAgrupadosPorChaveValor.get(ORGAO).trim());
+			licitacao.setCodigoUASG(dadosAgrupadosPorChaveValor.get(CODIGO_DA_UASG).trim());
+			licitacao.setDataEntregaProposta(dadosAgrupadosPorChaveValor.get(ENTREGA_DA_PROPOSTA).trim());
+			licitacao.setDataInicioEdital(dadosAgrupadosPorChaveValor.get(EDITAL_A_PARTIR_DE).trim());
+			licitacao.setTelefone(dadosAgrupadosPorChaveValor.get(TELEFONE).trim());
+			licitacao.setObjeto(dadosAgrupadosPorChaveValor.get(OBJETO).trim());
 			licitacao.setStatus(StatusEnum.NAO_LIDO);
 			return licitacao;
 		}).collect(Collectors.toList());
 	}
 
-	private Elements retrieveElementsFromWeb() throws IOException {
+	private Elements obtemElementosDaWeb() throws IOException {
 		logger.info("Buscando elementos da web...");
-		List<Document> documents = new ArrayList<>();
-		Elements elementsFound = new Elements();
+		List<Document> documentos = obtemDocumentosDaWeb();
+		Elements elementosEncontrados = new Elements();
+
+		documentos.stream()
+			.map(document -> document.select("table tr td form"))
+			.forEach(elementosEncontrados::addAll);
+
+		logger.infof("%d elementos encontrados.", elementosEncontrados.size());
+		return elementosEncontrados;
+	}
+
+	private List<Document> obtemDocumentosDaWeb() throws IOException {
+		List<Document> documentos = new ArrayList<>();
+
 		for (int pagina = 1;;pagina++) {
-			Document document = Jsoup.connect(String.format(TARGET_WEB_URL, pagina)).get();
-			String elementWebIdentifier = document.select("table tr td form")
+			Document documento = Jsoup.connect(String.format(URL_SISTEMA_WEB, pagina)).get();
+			String elementWebIdentifier = documento.select("table tr td form")
 				.select("tbody tr td")
 				.get(0)
 				.toString()
 				.replaceAll("[<tr>|</td>]", "");
-			if (!documents.isEmpty() && elementWebIdentifier.equals(FIRST_ELEMENT_WEB_IDENTIFIER)) {
+
+			if (!documentos.isEmpty() && elementWebIdentifier.equals(FIRST_ELEMENT_WEB_IDENTIFIER)) {
 				break;
 			}
-			documents.add(document);
-		}
-		documents.stream()
-			.map(document -> document.select("table tr td form"))
-			.forEach(elementsFound::addAll);
 
-		logger.infof("%d elementos encontrados.", elementsFound.size());
-		return elementsFound;
+			documentos.add(documento);
+		}
+		return  documentos;
 	}
 
-	private List<Map<String, String>> mapeiaDadosExtraidos(Elements elements) {
-		List<Map<String, String>> elementKeyValues = new ArrayList<>();
+	private List<Map<String, String>> mapeiaDadosExtraidos(Elements elementos) {
+		List<Map<String, String>> dadosAgrupadosPorChaveValor = new ArrayList<>();
 
-		for (Element element : elements) {
-			List<String> elementItems = new ArrayList<>(List.of(element.select("table tbody tr td").get(1).toString()
-				.split("<b>")));
-			String linhaDefeituosa = elementItems.get(1);
-			elementItems.remove(1);
-			String orgao = new ArrayList<>(List.of(linhaDefeituosa.split("\n")))
-				.stream()
-				.filter(item -> {
-					if (item.contains("Código da UASG")) {
-						elementItems.add(item);
-					}
-					return !item.contains("Código da UASG");
-				})
-				.collect(Collectors.joining(", "));
+		for (Element elemento : elementos) {
+			List<String> atributosDoElemento = obtemAtributosDoElemento(elemento);
+			String elementosTrataveis = atributosDoElemento.get(1);
+			atributosDoElemento = removeElementosDesnecessarios(atributosDoElemento);
+			List<String> elementosTratados = List.of(obtemCodigoDaUASG(elementosTrataveis), obtemOrgao(elementosTrataveis));
+			atributosDoElemento.addAll(elementosTratados);
 
-			elementItems.add("Orgao: " + orgao);
-			elementItems.remove(0);
-			Map<String, String> elementItemsFinal = elementItems.stream()
-                .map(this::formatarItem)
-				.collect(Collectors.toMap((string) -> string.split(":")[0].replaceAll(" ", "_").toUpperCase(), (string) -> {
-					StringBuilder stringCompleta = new StringBuilder();
-					boolean podeIncrementar = false;
-					for (char charEscolhido : string.toCharArray()) {
-						if (podeIncrementar) {
-							stringCompleta.append(charEscolhido);
-						}
-						if (charEscolhido == ':') {
-							podeIncrementar = true;
-						}
-					}
-					return stringCompleta.toString();
-				}));
-			elementKeyValues.add(elementItemsFinal);
+			Map<String, String> elementItemsFinal = atributosDoElemento.stream()
+                .map(this::formataItem)
+				.collect(Collectors.toMap(this::obtemChaveDoItem, this::obtemValorDoItem));
+			dadosAgrupadosPorChaveValor.add(elementItemsFinal);
 		}
-		return elementKeyValues;
+		return dadosAgrupadosPorChaveValor;
 	}
 
-    private String formatarItem(String item) {
+	private List<String> removeElementosDesnecessarios(List<String> atributosDoElemento) {
+		atributosDoElemento.remove(0);
+		atributosDoElemento.remove(0);
+		return atributosDoElemento;
+	}
+
+	private List<String> obtemAtributosDoElemento(Element elemento) {
+		return new ArrayList<>(List.of(elemento.select("table tbody tr td").get(1)
+			.toString()
+			.split("<b>")));
+	}
+
+	private String obtemChaveDoItem(String item) {
+		return item.split(":")[0].replaceAll(" ", "_").toUpperCase();
+	}
+
+	private String obtemValorDoItem(String item) {
+		StringBuilder stringCompleta = new StringBuilder();
+		boolean podeIncrementar = false;
+		for (char charEscolhido : item.toCharArray()) {
+			if (podeIncrementar) {
+				stringCompleta.append(charEscolhido);
+			}
+			if (charEscolhido == ':') {
+				podeIncrementar = true;
+			}
+		}
+		return stringCompleta.toString();
+	}
+
+	private String obtemOrgao(String elementosAgrupados) {
+		List<String> elementosSeparadosPorLinha = List.of(elementosAgrupados.split("\n"));
+		String orgaoAgrupado = elementosSeparadosPorLinha.stream()
+			.filter(item -> !item.contains("Código da UASG"))
+			.collect(Collectors.joining(", "));
+		return String.format("Orgao: %s", orgaoAgrupado);
+	}
+
+	private String obtemCodigoDaUASG(String elementosAgrupados) {
+		List<String> elementosSeparadosPorLinha = List.of(elementosAgrupados.split("\n"));
+		return elementosSeparadosPorLinha.stream()
+			.filter(item -> item.contains("Código da UASG"))
+			.findFirst().get();
+	}
+
+    private String formataItem(String item) {
         if (!item.contains(":")) {
             item = "Modalidade:" + item;
         }

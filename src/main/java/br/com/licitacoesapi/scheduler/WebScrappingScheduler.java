@@ -20,7 +20,7 @@ public class WebScrappingScheduler {
 
 	private static final String TIME_ZONE = "America/Sao_Paulo";
 	@Value("${cron.extrai-dados-da-web.job}")
-	private static final String CRON_EXTRAI_DADOS_DA_WEB_JOB = "0 2 * * * *";
+	private static final String CRON_EXTRAI_DADOS_DA_WEB_JOB = "*/10 * * * * *";
 
 	public WebScrappingScheduler(WebScrappingService webScrappingService) {
 		this.webScrappingService = webScrappingService;
