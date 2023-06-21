@@ -2,6 +2,8 @@
 
 Este projeto consiste em uma aplicação de web scraping desenvolvida em Java, com o objetivo de coletar informações sobre licitações publicadas no Diário Oficial da União. A aplicação conta com um agendamento configurável para executar periodicamente a lógica necessária para a extração de dados e a persistência no banco de dados. A API em si possui um método de consulta paginada para buscar todas as licitações armazenadas no banco, permitindo também a aplicação de filtros com base em determinados dados. Além disso, existe a possibilidade de atualizar uma licitação, marcando-a como lida ou não lida.
 
+**Site de onde os dados foram obtidos:** http://comprasnet.gov.br/ConsultaLicitacoes/ConsLicitacaoDia.asp 
+
 ### Tecnologias utilizadas :hammer_and_wrench:
 
 - Java 11
