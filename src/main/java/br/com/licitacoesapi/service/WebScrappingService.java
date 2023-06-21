@@ -107,15 +107,7 @@ public class WebScrappingService {
 			elementItems.add("Orgao: " + orgao);
 			elementItems.remove(0);
 			Map<String, String> elementItemsFinal = elementItems.stream()
-				.map(item -> {
-					if (!item.contains(":")) {
-						item = "Modalidade:" + item;
-					}
-					if (item.contains("Entrega da Proposta")) {
-						item = item.substring(0, 51);
-					}
-					return item.replaceAll("Objeto:</b>&nbsp; |<br>|<b>|</b>|</br>|&nbsp;|<span>|</span>|  |<span class=\"mensagem\">", "");
-				})
+                .map(this::formatarItem)
 				.collect(Collectors.toMap((string) -> string.split(":")[0].replaceAll(" ", "_").toUpperCase(), (string) -> {
 					StringBuilder stringCompleta = new StringBuilder();
 					boolean podeIncrementar = false;
@@ -133,4 +125,14 @@ public class WebScrappingService {
 		}
 		return elementKeyValues;
 	}
+
+    private String formatarItem(String item) {
+        if (!item.contains(":")) {
+            item = "Modalidade:" + item;
+        }
+        if (item.contains("Entrega da Proposta")) {
+            item = item.substring(0, 51);
+        }
+        return item.replaceAll("Objeto:</b>&nbsp; |<br>|<b>|</b>|</br>|&nbsp;|<span>|</span>|  |<span class=\"mensagem\">", "");
+    }
 }
